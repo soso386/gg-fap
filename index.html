@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>N—Cards</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3D3D3D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Noto+Naskh+Arabic:wght@500&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EBECEE;--ink:#3D3D3D;--card:#C4E326;--ctx:#3D3D3D;--dk:#3D3D3D;--dtx:#EBECEE;--soft:rgba(138,140,143,.25);color-scheme:light;box-sizing:border-box;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#3D3D3D;--ink:#EBECEE;--card:#C4E326;--ctx:#3D3D3D;--dk:#EBECEE;--dtx:#3D3D3D;--soft:rgba(138,140,143,.25);color-scheme:dark}}
+:root[data-theme=dark]{--bg:#3D3D3D;--ink:#EBECEE;--card:#C4E326;--ctx:#3D3D3D;--dk:#EBECEE;--dtx:#3D3D3D;--soft:rgba(138,140,143,.25);color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,textarea{font:inherit;color:var(--ink)}
+.mono{font:500 10px/1.3 "DM Mono",ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase}
+.px{font:400 40px/1 Silkscreen,"DM Mono",monospace;margin:8px 0 2px}
+.app{max-width:520px;margin:0 auto;padding:14px 16px 28px;display:flex;flex-direction:column;gap:12px}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hd>div{display:flex;gap:6px}
+.ib{width:38px;height:38px;border:1.5px solid var(--ink);border-radius:12px;background:none;font-size:17px;cursor:pointer;transition:transform .15s}
+.lg{display:flex;flex-direction:column;gap:4px;text-align:left;border:1.5px solid var(--ink);border-radius:16px;background:var(--soft);padding:14px;cursor:pointer;animation:in .4s both;animation-delay:calc(var(--i)*70ms);transition:transform .15s}
+.lg b{font-size:22px}
+.poster{position:relative;border-radius:18px;background:var(--card);color:var(--ctx);min-height:300px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:38px 18px;cursor:pointer}
+.poster.in{animation:in .35s both}.f1{animation:f1 .15s forwards}.f2{animation:f2 .15s}
+.bgl{position:absolute;inset:0;width:100%;height:100%;opacity:.3;pointer-events:none}
+.poster .mono{position:absolute}
+.tl{top:12px;left:14px}.tr{top:12px;right:14px}.bl{bottom:12px;left:14px}.br{bottom:12px;right:14px}
+.w{position:relative;display:flex;flex-direction:column;gap:10px;align-items:center}
+.ar{font:500 44px/1.7 "Noto Naskh Arabic","Geeza Pro",serif}
+.ar2{font:500 22px/1.6 "Noto Naskh Arabic","Geeza Pro",serif}
+.t1{font-size:28px;font-weight:600}
+.t2{font:500 15px "DM Mono",ui-monospace,monospace}
+hr{width:50%;border:0;border-top:1.5px solid currentColor;opacity:.4}
+.panel{background:var(--dk);color:var(--dtx);border-radius:16px;padding:12px;display:grid;gap:8px;grid-template-columns:repeat(3,1fr)}
+.btn{border:1.5px solid var(--dtx);background:none;color:var(--dtx);border-radius:12px;padding:12px 6px;cursor:pointer;transition:transform .15s}
+.btn.o{color:var(--ink);border-color:var(--ink)}
+.btn.one{grid-column:1/-1}
+.btn small{display:block;opacity:.7}
+.ib:active,.btn:active,.lg:active{transform:scale(.95)}
+.rw{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--soft);padding:6px 0;overflow:hidden;max-height:64px;transition:all .2s}
+.rw.out{max-height:0;opacity:0;padding:0}
+.rw span{flex:1;min-width:0;overflow-wrap:anywhere}
+input,textarea{background:var(--soft);border:1.5px solid var(--ink);border-radius:12px;padding:10px;width:100%;box-sizing:border-box}
+.toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:90%;bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;display:flex;gap:12px;align-items:center;animation:in .25s both}
+@keyframes in{from{opacity:0;transform:translateY(12px)}}
+@keyframes f1{to{transform:rotateY(90deg)}}
+@keyframes f2{from{transform:rotateY(90deg)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div id="tt"></div>
+<script>
+const K='cards-v2',D=864e5,IV=[0,6e5,D,3*D,7*D,21*D],LB=['','10м','1д','3д','7д','21д'],ARB=/[\u0600-\u06FF]/;
+const ST='<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 0C13 8 16 11 24 12 16 13 13 16 12 24 11 16 8 13 0 12 8 11 11 8 12 0Z" fill="currentColor"/></svg>';
+const BG='<svg class="bgl" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="currentColor" stroke-width=".25"><circle cx="50" cy="50" r="44"/><circle cx="50" cy="50" r="18"/><path d="M0 0L100 100M100 0L0 100"/></g><g fill="currentColor"><circle cx="50" cy="6" r="1.2"/><circle cx="94" cy="50" r="1.2"/><circle cx="50" cy="94" r="1.2"/><circle cx="6" cy="50" r="1.2"/><circle cx="50" cy="32" r="1"/><circle cx="68" cy="50" r="1"/></g></svg>';
+const SEED='• كِتَابٌ (китаб) — Книга\n• مَدْرَسَةٌ (мадраса) — Школа\n• جَدِيدٌ (джадид) — Новый';
+let S={langs:[]},V='menu',L=null,q=[],cur=null,flip=false,undo=null,tm;
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),uid=()=>Math.random().toString(36).slice(2,8);
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function parse(t){let c='',o=[];for(const raw of t.split('\n')){let l=raw.trim();if(!l)continue;
+ let m=l.match(/^=+\s*(.+?)\s*=+$/);if(m){c=m[1];continue}
+ l=l.replace(/^[•*\-]\s*/,'');let f,r='',b;
+ m=l.match(/^(.+?)\s*\((.+?)\)\s*[—–-]\s*(.+)$/);
+ if(m){f=m[1];r=m[2];b=m[3];if(!ARB.test(f)&&ARB.test(r))[f,r]=[r,f]}
+ else{m=l.match(/^(.+?)(?:\s+[-—–]\s+|\s*[;\t]\s*)(.+)$/);if(!m)continue;f=m[1];b=m[2]}
+ o.push({f,r,t:b,c,box:0,due:0})}return o}
+function addTo(l,t){const h=new Set(l.cards.map(c=>c.f));let n=0;for(const c of parse(t))if(!h.has(c.f)){l.cards.push(c);h.add(c.f);n++}save();return n}
+function load(){try{const j=localStorage.getItem(K);if(j)S=JSON.parse(j);else{const o=localStorage.getItem('ar-cards-v1');if(o){const p=JSON.parse(o);if(p.cards&&p.cards.length)S.langs.push({id:uid(),name:'Арабский',rtl:1,dir:p.dir==='ru'?'b':'f',cards:p.cards})}}}catch(e){}
+ if(!S.langs.length){const l={id:uid(),name:'Арабский',rtl:1,dir:'f',cards:[]};addTo(l,SEED);S.langs.push(l);save()}}
+function build(all){const n=Date.now();q=L.cards.filter(c=>all||c.due<=n);
+ for(let i=q.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[q[i],q[j]]=[q[j],q[i]]}
+ q=q.slice(0,30);nxt()}
+function nxt(){cur=q.shift()||null;flip=false;render('in')}
+function rate(g){if(g===0){cur.box=0;cur.due=Date.now();q.push(cur)}else{cur.box=Math.min(5,cur.box+g);cur.due=Date.now()+IV[cur.box]}save();nxt()}
+function toast(m,u){undo=u||null;clearTimeout(tm);$('#tt').innerHTML=`<div class="toast"><span class="mono">${m}</span>${u?'<button class="btn" style="padding:4px 10px;color:var(--bg);border-color:var(--bg)" data-a="un">Отменить</button>':''}</div>`;tm=setTimeout(()=>$('#tt').innerHTML='',4500)}
+function lst(){const s=($('#sq').value||'').toLowerCase();
+ $('#ls').innerHTML=L.cards.map((c,i)=>[c,i]).filter(([c])=>!s||(c.f+c.t+c.r).toLowerCase().includes(s)).slice(0,500).map(([c,i])=>`<div class="rw" id="r${i}"><span ${L.rtl?'dir="rtl" class="ar2"':''}>${esc(c.f)}</span><span>${esc(c.t)}</span><button class="ib" data-a="del" data-i="${i}">✕</button></div>`).join('')||'<div class="mono">Пусто</div>'}
+function render(a){const A=$('#app');
+ if(V==='menu'){A.innerHTML=`<div class="hd"><span class="mono">N0.001 · Signal</span>${ST}</div><div class="px">N—CARDS</div><div class="mono">Мои языки</div>`+S.langs.map((l,i)=>`<button class="lg" data-a="open" data-id="${l.id}" style="--i:${i}"><span class="mono">N0.${String(i+1).padStart(3,'0')}</span><b>${esc(l.name)}</b><span class="mono">${l.cards.length} слов · ${l.cards.filter(c=>c.due<=Date.now()).length} к повтору · ${l.cards.filter(c=>c.box>=3).length} выучено</span></button>`).join('')+'<div id="nf"></div><button class="btn o" data-a="nl">+ Новый язык</button>'}
+ else if(V==='manage'){A.innerHTML=`<div class="hd"><button class="ib" data-a="study">←</button><span class="mono">${esc(L.name)} · слова</span><span></span></div><input id="sq" placeholder="Поиск"><div id="ls"></div><textarea id="tx" rows="5" placeholder="• слово (транскрипция) — перевод&#10;или: слово - перевод"></textarea><button class="btn o" data-a="add">Добавить из списка</button><button class="btn o" data-a="rst">Сбросить прогресс</button><button class="btn o" data-a="dl">Удалить язык</button>`;lst()}
+ else{const r=L.rtl,A1=x=>`<div class="${r?'ar':'t1'}" ${r?'dir="rtl"':''}>${esc(x)}</div>`,T=x=>`<div class="t1">${esc(x)}</div>`;
+  let body,pan='';
+  if(!cur){body='<div class="w"><div class="t1">Готово ✦</div><div class="mono">Тап — повторить все</div></div>'}
+  else{const fr=L.dir==='b'?T(cur.t):A1(cur.f),bk=L.dir==='b'?A1(cur.f):T(cur.t);
+   body=`<div class="w">${fr}${flip?'<hr>'+bk+(cur.r?`<div class="t2">${esc(cur.r)}</div>`:''):''}</div><span class="mono tl">N0.${String(L.cards.indexOf(cur)+1).padStart(3,'0')}</span><span class="mono tr">${esc(cur.c||'')}</span><span class="mono bl">LV ${cur.box}</span><span class="mono br">${esc(L.name)}</span>`;
+   pan=flip?`<button class="btn" data-a="r0">Не знаю<small>снова</small></button><button class="btn" data-a="r1">Знаю<small>${LB[Math.min(5,cur.box+1)]}</small></button><button class="btn" data-a="r2">Легко<small>${LB[Math.min(5,cur.box+2)]}</small></button>`:'<button class="btn one" data-a="flip">Показать ответ</button>'}
+  A.innerHTML=`<div class="hd"><button class="ib" data-a="menu">←</button><span class="mono">${esc(L.name)}</span><div><button class="ib" data-a="dir">⇄</button><button class="ib" data-a="words">☰</button></div></div><div class="mono">${L.cards.length} слов · ${L.cards.filter(c=>c.box>=3).length} выучено · ${q.length+(cur?1:0)} в очереди</div><div class="poster ${a||''}" data-a="${!cur?'all':flip?'':'flip'}">${BG}${body}</div>${pan?`<div class="panel">${pan}</div>`:''}`}}
+document.addEventListener('input',e=>{if(e.target.id==='sq')lst()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,d=b.dataset;
+ if(a==='open'){L=S.langs.find(x=>x.id===d.id);V='study';build()}
+ else if(a==='menu'){V='menu';render()}
+ else if(a==='words'){V='manage';render()}
+ else if(a==='study'){V='study';build()}
+ else if(a==='dir'){L.dir=L.dir==='b'?'f':'b';save();render()}
+ else if(a==='flip'){if(flip)return;$('.poster').classList.add('f1');setTimeout(()=>{flip=true;render('f2')},150)}
+ else if(a==='all')build(1)
+ else if(/^r[012]$/.test(a))rate(+a[1])
+ else if(a==='nl'){$('#nf').innerHTML='<input id="nn" placeholder="Название (например, Английский)"><label class="mono"><input type="checkbox" id="nr" style="width:auto"> письмо справа налево</label><button class="btn o" data-a="mk">Создать</button>';$('#nn').focus();b.hidden=true}
+ else if(a==='mk'){const n=$('#nn').value.trim();if(!n)return;L={id:uid(),name:n,rtl:$('#nr').checked?1:0,dir:'f',cards:[]};S.langs.push(L);save();V='manage';render()}
+ else if(a==='add'){const n=addTo(L,$('#tx').value);$('#tx').value='';lst();toast('Добавлено: '+n)}
+ else if(a==='del'){const i=+d.i;$('#r'+i).classList.add('out');setTimeout(()=>{const c=L.cards.splice(i,1)[0];save();lst();toast('Слово удалено',{c,i})},200)}
+ else if(a==='un'&&undo){L.cards.splice(undo.i,0,undo.c);undo=null;save();lst();$('#tt').innerHTML=''}
+ else if(a==='rst'){L.cards.forEach(c=>{c.box=0;c.due=0});save();toast('Прогресс сброшен')}
+ else if(a==='dl'){if(!d.s){d.s=1;b.textContent='Точно? Нажмите ещё раз';setTimeout(()=>{delete d.s;b.textContent='Удалить язык'},3000);return}
+  S.langs=S.langs.filter(x=>x!==L);L=null;V='menu';save();render()}});
+load();render();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+</body>
+</html>
